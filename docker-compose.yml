@@ -1,0 +1,55 @@
+services:
+  # 1. THE DATABASE (PostgreSQL)
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: drizzle-postgres
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # Built-in Postgres readiness check
+      test: ["CMD-SHELL", "pg_isready -U drizzle-postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. THE CACHE (Redis)
+  cache:
+    image: redis:8.0-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      # Uses the built-in redis-cli tool to ping the server
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # 3. THE BACKEND (TypeScript API)
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - DATABASE_URL=postgres://drizzle-postgres:mypassword@db:5432/postgres
+  #     - REDIS_URL=redis://cache:6339
+  #   ports:
+  #     - "5000:5000"
+  #   healthcheck:
+  #     # Pings your TypeScript app's health endpoint
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+  #     start_period: 5s
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy    # Waits for Postgres to be ready
+  #     cache:
+  #       condition: service_healthy # Waits for Redis to be ready
+
+volumes:
+  postgres_data:
+  redis_data:

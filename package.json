@@ -1,0 +1,30 @@
+{
+  "name": "secure-multitenant-platform",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^1.0.0-rc.4",
+    "tsx": "^4.23.13"
+  },
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.0",
+    "drizzle": "^1.4.0",
+    "drizzle-orm": "^1.0.0-rc.4",
+    "hono": "^4.13.8",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^10.0.10",
+    "pg": "^8.23.0",
+    "postgres": "^3.4.9",
+    "zod": "^4.6.5"
+  }
+}
