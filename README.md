@@ -1,4 +1,4 @@
-# secure-multitenant-platform
+# Warehive
 
 To install dependencies:
 
