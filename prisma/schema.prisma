@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MembershipRole {
+  owner
+  admin
+  member
+
+  @@map("membership_role")
+}
+
+model User {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String       @db.VarChar(255)
+  email       String       @unique(map: "users_email_unique") @db.VarChar(255)
+  password    String       @db.VarChar(255)
+  create_at   DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime     @default(now()) @updatedAt @db.Timestamp(6)
+  tasks       Task[]
+  memberships Membership[]
+
+  @@map("users")
+}
+
+model Tenant {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username    String       @unique(map: "tenants_username_unique") @db.VarChar(255)
+  apiKeys     ApiKey[]
+  tasks       Task[]
+  memberships Membership[]
+
+  @@map("tenants")
+}
+
+model ApiKey {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  hash      String    @unique(map: "api_keys_hash_unique") @db.VarChar(512)
+  createAt  DateTime  @default(now()) @db.Timestamptz(6)
+  expiresAt DateTime? @db.Timestamptz(6)
+  tenantId  String    @db.Uuid
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("api_keys")
+}
+
+model Task {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String?  @db.Uuid
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  createAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamp(6)
+  tenantId    String   @db.Uuid
+  user        User?    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("tasks")
+}
+
+model Membership {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String         @db.Uuid
+  tenantId  String         @db.Uuid
+  role      MembershipRole @default(member)
+  createAt  DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime       @default(now()) @updatedAt @db.Timestamp(6)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, tenantId], map: "membership_user_tenant_unique")
+  @@map("membership")
+}
