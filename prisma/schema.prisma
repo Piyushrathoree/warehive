@@ -10,22 +10,9 @@ datasource db {
 enum MembershipRole {
   owner
   admin
+  manager
   member
-
   @@map("membership_role")
-}
-
-model User {
-  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String       @db.VarChar(255)
-  email       String       @unique(map: "users_email_unique") @db.VarChar(255)
-  password    String       @db.VarChar(255)
-  create_at   DateTime     @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime     @default(now()) @updatedAt @db.Timestamp(6)
-  tasks       Task[]
-  memberships Membership[]
-
-  @@map("users")
 }
 
 model Tenant {
@@ -34,6 +21,8 @@ model Tenant {
   apiKeys     ApiKey[]
   tasks       Task[]
   memberships Membership[]
+  ownerId     String       @db.Uuid
+  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@map("tenants")
 }
@@ -75,4 +64,20 @@ model Membership {
 
   @@unique([userId, tenantId], map: "membership_user_tenant_unique")
   @@map("membership")
+}
+
+model User {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String       @db.VarChar(255)
+  email         String       @unique(map: "users_email_unique") @db.VarChar(255)
+  password      String       @db.VarChar(255)
+  emailVerified Boolean      @default(false) @db.Boolean
+  image         String?      @db.VarChar(255)
+  createdAt     DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime     @default(now()) @updatedAt @db.Timestamp(6)
+  tasks         Task[]
+  memberships   Membership[]
+  tenants  Tenant[]
+
+  @@map("user")
 }
